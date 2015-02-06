@@ -21,7 +21,11 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.pentaho.metastore.api.BaseMetaStore;
@@ -43,6 +47,12 @@ public class XmlMetaStore extends BaseMetaStore implements IMetaStore {
 
   private File rootFile;
 
+  private Map<String, String> nameToIdMap = new HashMap<String, String>();
+  
+  private Set<String> handledFiles = new HashSet<String>();
+  
+  private boolean isSearch = false;
+  
   public XmlMetaStore() throws MetaStoreException {
     this( System.getProperty( "java.io.tmpdir" ) + File.separator + UUID.randomUUID() );
   }
@@ -415,7 +425,10 @@ public class XmlMetaStore extends BaseMetaStore implements IMetaStore {
       if ( !elementFile.exists() ) {
         return null;
       }
-      return new XmlMetaStoreElement( elementFilename );
+      XmlMetaStoreElement element = new XmlMetaStoreElement( elementFilename );
+      nameToIdMap.put( element.getName(), elementId );
+      handledFiles.add( elementFilename );
+      return element;
     } finally {
       if ( lock ) {
         unlockStore();
@@ -426,11 +439,25 @@ public class XmlMetaStore extends BaseMetaStore implements IMetaStore {
   @Override
   public IMetaStoreElement getElementByName( String namespace, IMetaStoreElementType elementType, String name )
     throws MetaStoreException {
+    isSearch = true;
+    String expectedID = nameToIdMap.get( name );
+    if (expectedID != null) {
+      IMetaStoreElement expectedElement = getElement( namespace, elementType, expectedID );
+      if (expectedElement != null) {
+        if (name.equalsIgnoreCase( expectedElement.getName() )) {
+          isSearch = false;
+          return expectedElement;
+        }
+      }
+    }
+    
     for ( IMetaStoreElement element : getElements( namespace, elementType ) ) {
       if ( element.getName() != null && element.getName().equalsIgnoreCase( name ) ) {
+        isSearch = false;
         return element;
       }
     }
+    isSearch = false;
     return null;
   }
 
@@ -551,7 +578,7 @@ public class XmlMetaStore extends BaseMetaStore implements IMetaStore {
     File[] files = folder.listFiles( new FileFilter() {
       @Override
       public boolean accept( File file ) {
-        return !file.isHidden() && file.isFile();
+        return (!isSearch || !handledFiles.contains( file.getName() )) && !file.isHidden() && file.isFile();
       }
     } );
     if ( files == null ) {
