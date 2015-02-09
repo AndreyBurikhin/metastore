@@ -78,7 +78,7 @@ public class XmlMetaStore extends BaseMetaStore implements IMetaStore {
     lockStore();
     try {
       File[] files = listFolders( rootFile );
-      List<String> namespaces = new ArrayList<String>();
+      List<String> namespaces = new ArrayList<String>( files.length );
       for ( File file : files ) {
         namespaces.add( file.getName() );
       }
@@ -131,7 +131,7 @@ public class XmlMetaStore extends BaseMetaStore implements IMetaStore {
       List<IMetaStoreElementType> elementTypes = getElementTypes( namespace, false );
 
       if ( !elementTypes.isEmpty() ) {
-        List<String> dependencies = new ArrayList<String>();
+        List<String> dependencies = new ArrayList<String>( elementTypes.size() );
         for ( IMetaStoreElementType elementType : elementTypes ) {
           dependencies.add( elementType.getId() );
         }
@@ -159,11 +159,10 @@ public class XmlMetaStore extends BaseMetaStore implements IMetaStore {
       lockStore();
     }
     try {
-      List<IMetaStoreElementType> elementTypes = new ArrayList<IMetaStoreElementType>();
-
       String spaceFolder = XmlUtil.getNamespaceFolder( rootFolder, namespace );
       File spaceFolderFile = new File( spaceFolder );
       File[] elementTypeFolders = listFolders( spaceFolderFile );
+      List<IMetaStoreElementType> elementTypes = new ArrayList<IMetaStoreElementType>( elementTypeFolders.length );
       for ( File elementTypeFolder : elementTypeFolders ) {
         String elementTypeId = elementTypeFolder.getName();
         IMetaStoreElementType elementType = getElementType( namespace, elementTypeId, false );
@@ -182,11 +181,10 @@ public class XmlMetaStore extends BaseMetaStore implements IMetaStore {
   public synchronized List<String> getElementTypeIds( String namespace ) throws MetaStoreException {
     lockStore();
     try {
-      List<String> ids = new ArrayList<String>();
-
       String spaceFolder = XmlUtil.getNamespaceFolder( rootFolder, namespace );
       File spaceFolderFile = new File( spaceFolder );
       File[] elementTypeFolders = listFolders( spaceFolderFile );
+      List<String> ids = new ArrayList<String>( elementTypeFolders.length );
       for ( File elementTypeFolder : elementTypeFolders ) {
         String elementTypeId = elementTypeFolder.getName();
         ids.add( elementTypeId );
@@ -349,11 +347,10 @@ public class XmlMetaStore extends BaseMetaStore implements IMetaStore {
       lockStore();
     }
     try {
-      List<IMetaStoreElement> elements = new ArrayList<IMetaStoreElement>();
-
       String elementTypeFolder = XmlUtil.getElementTypeFolder( rootFolder, namespace, elementType.getName() );
       File elementTypeFolderFile = new File( elementTypeFolder );
       File[] elementTypeFiles = listFiles( elementTypeFolderFile );
+      List<IMetaStoreElement> elements = new ArrayList<IMetaStoreElement>( elementTypeFiles.length );
       for ( File elementTypeFile : elementTypeFiles ) {
         String elementId = elementTypeFile.getName();
         // File .type.xml doesn't hidden in OS Windows so better to ignore it explicitly
@@ -377,11 +374,10 @@ public class XmlMetaStore extends BaseMetaStore implements IMetaStore {
     throws MetaStoreException {
     lockStore();
     try {
-      List<String> elementIds = new ArrayList<String>();
-
       String elementTypeFolder = XmlUtil.getElementTypeFolder( rootFolder, namespace, elementType.getName() );
       File elementTypeFolderFile = new File( elementTypeFolder );
       File[] elementTypeFiles = listFiles( elementTypeFolderFile );
+      List<String> elementIds = new ArrayList<String>( elementTypeFiles.length );
       for ( File elementTypeFile : elementTypeFiles ) {
         String elementId = elementTypeFile.getName();
         // File .type.xml doesn't hidden in OS Windows so better to ignore it explicitly
